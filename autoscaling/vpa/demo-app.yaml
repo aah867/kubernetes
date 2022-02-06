@@ -1,0 +1,36 @@
+# This config creates a deployment with two pods, each requesting 50 millicores
+# and trying to utilize slightly above 500 millicores (repeatedly using CPU for
+# 0.5s and sleeping 0.5s).
+# It also creates a corresponding Vertical Pod Autoscaler that adjusts the
+# requests.
+# Note that the update mode is left unset, so it defaults to "Auto" mode.
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app-vpa
+spec:
+  selector:
+    matchLabels:
+      app: demo-app-vpa
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: demo-app-vpa
+    spec:
+      containers:
+        - name: demo-app-vpa
+          image: k8s.gcr.io/ubuntu-slim:0.1
+          resources:
+            requests:
+              cpu: 3000m
+              memory: 2000Mi
+            limits:
+              cpu: 3500m
+              memory: 3000Mi
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - "while true; do timeout 0.5s yes >/dev/null; sleep 0.5s; done"
